@@ -1,34 +1,52 @@
 # PyRebar
-[PyRevit](https://github.com/pyrevitlabs/pyRevit/tree/master) extension for Autodesk Revit :registered: reinforcement modelling. 
-This is a toolkit of useful scripts increasing productivity during reinforcement detailing.
+[PyRevit](https://github.com/pyrevitlabs/pyRevit/tree/master) extension for Autodesk Revit :registered: reinforcement modelling.
+This is a toolkit of scripts that speeds up common, repetitive tasks in reinforcement detailing: checking a model for mistakes, selecting bars by criteria, and calculating quantities.
 
 <img width="790" height="90" alt="image" src="https://github.com/user-attachments/assets/71258a36-5410-434e-afdc-18a60949ca20" />
 
-**Currently tested with REVIT 2025.4**
+**Currently tested with REVIT 2027**
 
 **Any improvement ideas and features to add are welcome!**
 
+## How selection works
+
+Tools differ in how they pick up rebar to work with — worth knowing before you click a button:
+
+- **Selection required** (*Same Number*, *Reverse hook*, *RebarCoG*, *Get mass*): acts on whatever rebar you have selected. If nothing is selected, you'll be prompted to pick elements in the model.
+- **Selection optional, falls back to view** (*Select Rebar Type*, *Obscure/Unobscure bars*): acts on your selection if you have one, otherwise on every rebar visible in the active view.
+- **Always whole model** (*Audit rebars*, *Select by Parameter*): ignores any current selection and always scans every rebar in the project.
+
 ## Features
-Most of the functions have **flexible selection** - you can preselect rebars to execute command only on them, or script is executed on all rebars in view if nothing is selected.
 
-### Summary
-#### View tab
-- **Unobscure bars** - Works for all reinforcement bars in current view.
-- **Obscure bars**  - Works for all reinforcement bars in current view.
+### View tab
+- **Unobscure bars** — Turns off "obscured" display for reinforcement bars, making hidden-line bars visible again.
+- **Obscure bars** — Marks reinforcement bars as obscured (hidden behind other elements) in the current view.
 
-#### Selection tab
-- **Same Number** - Selects all rebars with the same number within the same partition. :warning: Requires preselection of rebar.
-- **Select by Parameter** - Selects all rebar objects with assigned parameter. You can type your own parameter name and value, or choose from preselected.
-- **Select Rebar Type** - Selects all rebars in view by chosen type.
+### Selection tab
+- **Same Number** — Given one selected rebar, selects every other rebar sharing the same "Rebar Number" *and* "Partition" — handy for isolating a whole bar mark to check or edit it together.
+- **Select by Parameter** — Opens a dialog where you type (or pick from a saved list) a parameter name and value; selects every rebar in the model whose parameter matches. The dropdown of parameter names is configurable from the Settings tool.
+- **Select Rebar Type** — Opens a dialog listing every rebar type used in the model; selects all rebars of the type you pick.
 
-#### Modify tab
-- **Reverse hook** - Reverse hook :warning: This function works only when 'Include hooks in Rebar Shape definition' is disabled in Reinforcement Settings.
+### Modify tab
+- **Reverse hook** — Swaps the Left/Right orientation of the "Hook at Start" and "Hook at End" on the selected rebar(s). :warning: Only works when **'Include hooks in Rebar Shape definition'** is *disabled* in Revit's Reinforcement Settings — if it's enabled, the tool will report failure and change nothing.
 
-#### Query tab
-- **Audit rebars** - Executes audit, that checks if there are any hidden rebars in current view, if there are any super short rebars (<10cm) and if Rebar Shape does not match 'Workshop Instructions' property. This is newest feature and yet not fully tested.
-- **RebarCoG** - Calculates the Centre of Gravity of selected rebar or rebars. The CoG can be visualized with small Sphere generic model. CoG is returned in mm, with respect to project base point. The total mass is returned in $kg$.
-- **Rebar ratio** - Calculates rebar mass/concrete volume ratio in $\frac{kg}{m^3}$. User is prompted to select a formwork, all reinforcement in selected element is taken into account. In case of multiple elements selected the masses and volumes are added to eachother.
-- **Get mass** - Calculates mass of the selected rebar element(s). The calculation is based on equation: $\frac{\pi d^2}{4} L_{bar }$ , where $d$ is diameter, $L_{bar}$ is total bar length calculated by Revit. Value is returned in $kg$.
+### Query tab
+- **Audit rebars** — Scans the whole model and reports, against the active view:
+  - Bars shorter than the minimum length, or longer than the maximum length (both configurable in Settings; 100 mm / 12000 mm by default — bars over the maximum typically need a splice).
+  - Bars marked with the "Keep Straight" workshop instruction whose Shape parameter isn't actually straight ("00"/"0").
+  - Bars hidden in the active view.
+  - Bars duplicated on top of each other (e.g. from an accidental copy/paste), grouped by overlapping bounding box.
+  - A **Statistics by Diameter** table: how many physical bars exist for each bar diameter in the model.
+- **RebarCoG** — Calculates the mass-weighted centre of gravity of the selected rebar(s), relative to the project base point, along with their total mass (both shown in project units). Optionally places a small sphere generic model at the calculated point so you can see it in the model.
+- **Rebar ratio** — Calculates the reinforcement-to-concrete ratio (rebar mass ÷ concrete volume) for one or more structural elements that can host rebar (e.g. a wall or column). Acts on your current selection, or prompts you to pick elements if nothing is selected. All rebar hosted by the selected element(s) is included; if several elements are selected, their masses and volumes are summed before the ratio is computed.
+- **Get mass** — Calculates the total mass of the selected rebar element(s) from $\frac{\pi d^2}{4} L_{bar}$ (where $d$ is bar diameter and $L_{bar}$ is the bar length Revit reports), summed across all bars and printed in project mass units.
+
+### Settings tab
+- **Settings** — Configure the minimum/maximum length thresholds used by *Audit rebars*, and edit the list of parameter names offered by *Select by Parameter*.
+
+## License
+
+[GPL-3.0](LICENSE.txt), matching pyRevit's own license — as a pyRevit extension, PyRebar is a derivative work, so it must be released under the same license.
 
 I do not work in Revit that often anymore but will try to maintain this add-in for future versions.
 

@@ -1,8 +1,4 @@
-__doc__ = (
-    "Find and list rebars that are too short, too long, have an incorrect workshop "
-    "instruction, are hidden in view, or are duplicated. Length thresholds are set "
-    "in the Settings tool."
-)
+__doc__ = "Verify rebar elements in the model for common issues."
 __title__ = "Audit rebars"
 __author__ = "MWolinski"
 
@@ -19,9 +15,13 @@ uidoc = __revit__.ActiveUIDocument
 view = doc.ActiveView
 
 FEET_TO_MM = 304.8
-BBOX_TOLERANCE_FT = 0.003  # ~1 mm, used to round bounding box coordinates for duplicate matching
+BBOX_TOLERANCE_FT = (
+    0.003  # ~1 mm, used to round bounding box coordinates for duplicate matching
+)
 MIN_LENGTH_MM = get_setting("min_length_mm")
-MAX_LENGTH_MM = get_setting("max_length_mm")  # bars longer than this should typically be spliced
+MAX_LENGTH_MM = get_setting(
+    "max_length_mm"
+)  # bars longer than this should typically be spliced
 
 
 def get_rebar_length_mm(rebar):
@@ -67,6 +67,24 @@ def get_partition(rebar):
     return get_param_str(rebar, "Partition")
 
 
+def get_diameter_mm(rebar):
+    """Return bar diameter in millimeters as float, or None if not available."""
+    p = rebar.LookupParameter("Bar Diameter")
+    if not p:
+        return None
+    try:
+        return p.AsDouble() * FEET_TO_MM
+    except:
+        return None
+
+
+def get_bar_count(rebar):
+    """Return the number of physical bars this rebar element represents
+    (existing positions in the set, excluding any suppressed positions)."""
+    n_bars = rebar.NumberOfBarPositions
+    return sum(1 for i in range(n_bars) if rebar.DoesBarExistAtPosition(i))
+
+
 def format_basic_result(item):
     """Formats a (id, bar_no, partition) tuple for output."""
     return "ID: {0} | Bar Number: {1} | Partition: {2}".format(*item)
@@ -110,6 +128,8 @@ long_bars = []  # (id, bar_no, partition, length_mm)
 keep_straight_bars = []  # (id, bar_no, partition)
 hidden_bars = []  # (id, bar_no, partition)
 duplicate_key_map = {}  # signature -> list of (id, bar_no, partition)
+diameter_stats = {}  # rounded diameter (mm) -> bar count
+total_bar_count = 0
 
 for r in rebar_list:
     bar_no = get_bar_number(r) or ""
@@ -119,6 +139,14 @@ for r in rebar_list:
     length_mm = get_rebar_length_mm(r)
     workshop = get_param_str(r, "Workshop Instructions")
     shape = get_param_str(r, "Shape")
+
+    bar_count = get_bar_count(r)
+    total_bar_count += bar_count
+
+    diam_mm = get_diameter_mm(r)
+    if diam_mm is not None:
+        diam_key = round(diam_mm, 6)
+        diameter_stats[diam_key] = diameter_stats.get(diam_key, 0) + bar_count
 
     if length_mm is not None and length_mm < MIN_LENGTH_MM:
         short_bars.append(info)
@@ -146,10 +174,28 @@ def print_check(title, results, formatter):
         output.print_md(formatter(item))
 
 
-output.print_md("## Rebar Audit Results")
-output.print_md("Checked **{0}** rebar elements against view '{1}'.".format(len(rebar_list), view.Name))
-
 length_factor, length_label = get_length_unit(doc)
+
+output.print_md("## Rebar Audit Results")
+output.print_md(
+    "Checked **{0}** rebar elements ({1} physical bars) against view '{2}'.".format(
+        len(rebar_list), total_bar_count, view.Name
+    )
+)
+
+output.print_md("### Statistics by Diameter")
+if not diameter_stats:
+    output.print_md("Not found.")
+else:
+    rows = ["| Diameter | Count |", "|---|---|"]
+    for diam_key in sorted(diameter_stats):
+        count = diameter_stats[diam_key]
+        rows.append(
+            "| {0:.2f} {1} | {2} |".format(
+                diam_key * length_factor, length_label, count
+            )
+        )
+    output.print_md("\n".join(rows))
 
 print_check(
     "Too Short (< {0:.2f} {1})".format(MIN_LENGTH_MM * length_factor, length_label),
@@ -182,7 +228,11 @@ else:
     for group in duplicate_groups:
         ids_str = ", ".join(str(item[0]) for item in group)
         bar_no = group[0][1]
-        output.print_md("Bar Number: {0} | {1} overlapping elements | IDs: {2}".format(bar_no, len(group), ids_str))
+        output.print_md(
+            "Bar Number: {0} | {1} overlapping elements | IDs: {2}".format(
+                bar_no, len(group), ids_str
+            )
+        )
 
 output.print_md("---")
 output.print_md("Done.")
