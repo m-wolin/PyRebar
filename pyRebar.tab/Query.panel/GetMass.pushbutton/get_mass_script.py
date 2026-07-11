@@ -8,6 +8,7 @@ from Autodesk.Revit.DB import *
 from rebar_selector import RebarSelector
 from rebar_cog import RebarCoG
 from conversion import get_mass_unit
+from pyrevit import script
 
 ROUNDING = 2
 
@@ -18,6 +19,10 @@ view = doc.ActiveView
 
 rs = RebarSelector(doc, uidoc)
 rebar_collector = rs.get_rebars()
+
+if not rebar_collector:
+    print("No rebar selected. Please select at least one rebar element.")
+    script.exit()
 
 rebar_cog = RebarCoG(rebar_collector)
 

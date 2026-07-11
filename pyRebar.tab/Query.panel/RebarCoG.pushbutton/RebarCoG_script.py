@@ -10,6 +10,7 @@ from rebar_cog import RebarCoG
 from visualize_point import visualize_point
 from conversion import get_length_unit, get_mass_unit
 from pyrevit import forms
+from pyrevit import script
 
 ROUNDING = 3
 
@@ -19,6 +20,10 @@ view = doc.ActiveView
 
 rs = RebarSelector(doc, uidoc)
 rebar_collector = rs.get_rebars()
+
+if not rebar_collector:
+    print("No rebar selected. Please select at least one rebar element.")
+    script.exit()
 
 rebar_cog = RebarCoG(rebar_collector)
 cog = rebar_cog.get_cog()
