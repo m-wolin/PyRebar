@@ -1,0 +1,67 @@
+<Window
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="PyRebar Settings"
+    Height="300"
+	Width="320"
+	ResizeMode="NoResize"
+	SizeToContent="Height"
+    WindowStartupLocation="CenterScreen">
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="80"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+
+        <Grid>
+            <TextBlock Grid.Row="0" Text="Configure PyRebar thresholds and defaults."  TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="130*"/>
+                <ColumnDefinition Width="5"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="1" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,5,0,5" Content="Min bar length (mm):"/>
+            <TextBox Grid.Column="2" x:Name="txtMinLength" TextAlignment="Left" Width="100" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,5,0,5"/>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="130*"/>
+                <ColumnDefinition Width="5"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="1" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,5,0,5" Content="Max bar length (mm):"/>
+            <TextBox Grid.Column="2" x:Name="txtMaxLength" TextAlignment="Left" Width="100" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,5,0,5"/>
+        </Grid>
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="130*"/>
+                <ColumnDefinition Width="5"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="1" FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Right" TextAlignment="Right" VerticalAlignment="Top" Margin="0,5,5,5" Text="Select by Parameter list (comma separated):"/>
+            <TextBox Grid.Column="2" x:Name="txtCustomParameters" TextWrapping="Wrap" AcceptsReturn="False" Width="130" Height="60" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,5,0,5"/>
+        </Grid>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="1" x:Name="btnSave" Content="Save" Height="20" Width="70" Margin="0,5,0,5" Click="save_settings" IsDefault="True"/>
+            <Button Grid.Column="0" x:Name="btnCancel" Content="Cancel" Height="20" Width="70" Margin="0,5,0,5" Click="window_close" IsCancel="True"/>
+        </Grid>
+
+    </Grid>
+</Window>

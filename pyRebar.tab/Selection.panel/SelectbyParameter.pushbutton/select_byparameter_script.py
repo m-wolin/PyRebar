@@ -11,6 +11,7 @@ from System.Collections.Generic import List
 from rebar_selector import RebarSelector
 from conversion import FEET_TO_MM
 from pyrevit import forms
+from pyrebar_settings import get_setting, open_settings_dialog
 
 doc = __revit__.ActiveUIDocument.Document
 uidoc = __revit__.ActiveUIDocument
@@ -18,13 +19,6 @@ view = doc.ActiveView
 
 
 xaml_file = script.get_bundle_file("view.xaml")
-
-default_parameters = ["Bar Diameter", "Partition", "Comments", "Schedule Mark"]
-
-# parameters_lst = List[String]()
-
-# for parameter in default_parameters:
-#     parameters_lst.Add(parameter)
 
 
 rs = RebarSelector(doc, uidoc)
@@ -61,7 +55,10 @@ def get_rebar_ids_by_parameter(rebar_collector, parameter_name, expected_value):
         elif storage_type == DB.StorageType.Integer:
             param_value = str(param.AsInteger())
         elif storage_type == DB.StorageType.ElementId:
-            param_value = str(param.AsElementId().IntegerValue)
+            eid = param.AsElementId()
+            # ElementId.Value (Int64) replaces the deprecated ElementId.IntegerValue (Int32)
+            # as of the Revit 2024 API; IntegerValue was removed entirely in later versions.
+            param_value = str(eid.Value if hasattr(eid, "Value") else eid.IntegerValue)
 
         # Compare values
         if compare_values(param_value, expected_value):
@@ -131,12 +128,17 @@ def string_to_number(s):
 class MainWindow(forms.WPFWindow):
     def __init__(self, xaml_file):
         WPFWindow.__init__(self, xaml_file)
-        self.cmbBox.ItemsSource = default_parameters
+        self.cmbBox.ItemsSource = get_setting("custom_parameters")
         self.ShowDialog()
 
     def window_close(self, sender, args):
         """Closes opened xaml window."""
         self.Close()
+
+    def open_settings(self, sender, args):
+        """Opens the PyRebar settings dialog and refreshes the parameter list if saved."""
+        if open_settings_dialog():
+            self.cmbBox.ItemsSource = get_setting("custom_parameters")
 
     def select_rebar_by_parameter(self, sender, args):
         """Selects rebars with given parameters"""
