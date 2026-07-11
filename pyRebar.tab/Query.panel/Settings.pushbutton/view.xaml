@@ -28,7 +28,7 @@
                 <ColumnDefinition Width="130*"/>
                 <ColumnDefinition Width="5"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="1" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,5,0,5" Content="Min bar length (mm):"/>
+            <Label Grid.Column="1" x:Name="labelMinLength" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,5,0,5" Content="Min bar length (mm):"/>
             <TextBox Grid.Column="2" x:Name="txtMinLength" TextAlignment="Left" Width="100" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,5,0,5"/>
         </Grid>
 
@@ -39,7 +39,7 @@
                 <ColumnDefinition Width="130*"/>
                 <ColumnDefinition Width="5"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="1" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,5,0,5" Content="Max bar length (mm):"/>
+            <Label Grid.Column="1" x:Name="labelMaxLength" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,5,0,5" Content="Max bar length (mm):"/>
             <TextBox Grid.Column="2" x:Name="txtMaxLength" TextAlignment="Left" Width="100" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,5,0,5"/>
         </Grid>
 

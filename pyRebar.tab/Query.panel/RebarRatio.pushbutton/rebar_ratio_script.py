@@ -8,6 +8,7 @@ from Autodesk.Revit.UI import *
 from Autodesk.Revit.DB import *
 from pyrevit import forms
 from rebar_selector import RebarSelector
+from conversion import get_mass_unit, get_volume_unit
 
 doc = __revit__.ActiveUIDocument.Document
 uidoc = __revit__.ActiveUIDocument
@@ -92,6 +93,20 @@ def calculate_ratio(element, rebars):
     return [volume, total_rebar_mass, ratio]
 
 
+mass_factor, mass_label = get_mass_unit(doc)
+volume_factor, volume_label = get_volume_unit(doc)
+
+
+def print_results(volume_m3, mass_kg):
+    """Prints volume/mass/ratio converted to the document's display units."""
+    display_volume = volume_m3 * volume_factor
+    display_mass = mass_kg * mass_factor
+    display_ratio = round(display_mass / display_volume, 2) if display_volume != 0 else 0
+    print("Concrete volume: {0} {1}".format(round(display_volume, 2), volume_label))
+    print("Total rebar mass: {0} {1}".format(round(display_mass, 2), mass_label))
+    print("Ratio: {0} {1}/{2}".format(display_ratio, mass_label, volume_label))
+
+
 # Main logic
 elements = get_objects(doc, uidoc)
 if len(elements) > 1:
@@ -105,15 +120,10 @@ if len(elements) > 1:
             rebar_masses.append(total_mass)
     total_volume = sum(volumes)
     total_rc_mass = sum(rebar_masses)
-    total_ratio = round(total_rc_mass / total_volume, 2)
-    print("Concrete volume: {} m3".format(total_volume))
-    print("Total rebar mass: {} kg".format(total_rc_mass))
-    print("Ratio: {} kg/m3".format(total_ratio))
+    print_results(total_volume, total_rc_mass)
 
 elif len(elements) == 1:
     if can_host_rebar(elements[0]):
         rebars = get_element_dependent_rebars(elements[0])
-        volume, total_rc_mass, ratio = calculate_ratio(elements[0], rebars)
-        print("Concrete volume: {} m3".format(volume))
-        print("Total rebar mass: {} kg".format(total_rc_mass))
-        print("Ratio: {} kg/m3".format(ratio))
+        volume, total_rc_mass, _ = calculate_ratio(elements[0], rebars)
+        print_results(volume, total_rc_mass)

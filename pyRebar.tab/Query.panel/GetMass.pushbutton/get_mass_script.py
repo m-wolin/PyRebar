@@ -7,6 +7,7 @@ from Autodesk.Revit.UI import *
 from Autodesk.Revit.DB import *
 from rebar_selector import RebarSelector
 from rebar_cog import RebarCoG
+from conversion import get_mass_unit
 
 ROUNDING = 2
 
@@ -22,6 +23,8 @@ rebar_cog = RebarCoG(rebar_collector)
 
 mass = rebar_cog.get_cog()[1]
 
-mass_text = "Total mass: " + str(round(mass, ROUNDING)) + " kg."
+mass_factor, mass_label = get_mass_unit(doc)
+
+mass_text = "Total mass: " + str(round(mass * mass_factor, ROUNDING)) + " " + mass_label + "."
 
 print(mass_text)

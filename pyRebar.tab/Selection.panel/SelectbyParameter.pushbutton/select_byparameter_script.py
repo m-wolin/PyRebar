@@ -137,7 +137,7 @@ class MainWindow(forms.WPFWindow):
 
     def open_settings(self, sender, args):
         """Opens the PyRebar settings dialog and refreshes the parameter list if saved."""
-        if open_settings_dialog():
+        if open_settings_dialog(doc):
             self.cmbBox.ItemsSource = get_setting("custom_parameters")
 
     def select_rebar_by_parameter(self, sender, args):

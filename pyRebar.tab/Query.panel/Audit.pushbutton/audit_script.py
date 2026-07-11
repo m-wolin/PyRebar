@@ -10,6 +10,7 @@ from Autodesk.Revit import DB
 from pyrevit import script
 from rebar_selector import RebarSelector
 from pyrebar_settings import get_setting
+from conversion import get_length_unit
 
 output = script.get_output()
 
@@ -64,6 +65,20 @@ def get_bar_number(rebar):
 def get_partition(rebar):
     """Return 'Partition' as string."""
     return get_param_str(rebar, "Partition")
+
+
+def format_basic_result(item):
+    """Formats a (id, bar_no, partition) tuple for output."""
+    return "ID: {0} | Bar Number: {1} | Partition: {2}".format(*item)
+
+
+def format_long_bar_result(item):
+    """Formats a (id, bar_no, partition, length_mm) tuple for output,
+    converting the length to the document's Length display unit."""
+    rebar_id, bar_no, partition, length_mm = item
+    return "ID: {0} | Bar Number: {1} | Partition: {2} | Length: {3:.2f} {4}".format(
+        rebar_id, bar_no, partition, length_mm * length_factor, length_label
+    )
 
 
 def get_duplicate_key(rebar):
@@ -134,28 +149,30 @@ def print_check(title, results, formatter):
 output.print_md("## Rebar Audit Results")
 output.print_md("Checked **{0}** rebar elements against view '{1}'.".format(len(rebar_list), view.Name))
 
+length_factor, length_label = get_length_unit(doc)
+
 print_check(
-    "Too Short (< {0:.0f} mm)".format(MIN_LENGTH_MM),
+    "Too Short (< {0:.2f} {1})".format(MIN_LENGTH_MM * length_factor, length_label),
     short_bars,
-    lambda item: "ID: {0} | Bar Number: {1} | Partition: {2}".format(*item),
+    format_basic_result,
 )
 
 print_check(
-    "Too Long (> {0:.0f} mm)".format(MAX_LENGTH_MM),
+    "Too Long (> {0:.2f} {1})".format(MAX_LENGTH_MM * length_factor, length_label),
     long_bars,
-    lambda item: "ID: {0} | Bar Number: {1} | Partition: {2} | Length: {3:.0f} mm".format(*item),
+    format_long_bar_result,
 )
 
 print_check(
     "Keep Straight but Shape != 00",
     keep_straight_bars,
-    lambda item: "ID: {0} | Bar Number: {1} | Partition: {2}".format(*item),
+    format_basic_result,
 )
 
 print_check(
     "Hidden in view '{0}'".format(view.Name),
     hidden_bars,
-    lambda item: "ID: {0} | Bar Number: {1} | Partition: {2}".format(*item),
+    format_basic_result,
 )
 
 output.print_md("### Duplicated Bars")

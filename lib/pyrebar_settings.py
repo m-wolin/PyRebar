@@ -8,6 +8,7 @@ import os
 from pyrevit import script
 from pyrevit import forms
 from pyrevit.forms import WPFWindow
+from conversion import get_length_unit
 
 SECTION_NAME = "PyRebarSettings"
 
@@ -48,12 +49,17 @@ def save():
 
 
 class SettingsWindow(WPFWindow):
-    """PyRebar settings dialog. Only writes to config when Save is clicked."""
+    """PyRebar settings dialog. Only writes to config when Save is clicked.
+    Length thresholds are shown/entered in the document's Length display unit,
+    but are always persisted in millimeters."""
 
-    def __init__(self):
+    def __init__(self, doc):
         WPFWindow.__init__(self, SETTINGS_XAML_PATH)
-        self.txtMinLength.Text = str(get_setting("min_length_mm"))
-        self.txtMaxLength.Text = str(get_setting("max_length_mm"))
+        self.length_factor, self.length_label = get_length_unit(doc)
+        self.labelMinLength.Content = "Min bar length ({0}):".format(self.length_label)
+        self.labelMaxLength.Content = "Max bar length ({0}):".format(self.length_label)
+        self.txtMinLength.Text = str(round(get_setting("min_length_mm") * self.length_factor, 3))
+        self.txtMaxLength.Text = str(round(get_setting("max_length_mm") * self.length_factor, 3))
         self.txtCustomParameters.Text = ", ".join(get_setting("custom_parameters"))
         self.saved = False
 
@@ -64,18 +70,18 @@ class SettingsWindow(WPFWindow):
     def save_settings(self, sender, args):
         """Validates and persists settings entered by the user."""
         try:
-            min_length = float(self.txtMinLength.Text)
+            min_length_display = float(self.txtMinLength.Text)
         except ValueError:
             forms.alert("Min bar length must be a number.", ok=True)
             return
 
         try:
-            max_length = float(self.txtMaxLength.Text)
+            max_length_display = float(self.txtMaxLength.Text)
         except ValueError:
             forms.alert("Max bar length must be a number.", ok=True)
             return
 
-        if min_length >= max_length:
+        if min_length_display >= max_length_display:
             forms.alert("Min bar length must be smaller than max bar length.", ok=True)
             return
 
@@ -84,8 +90,8 @@ class SettingsWindow(WPFWindow):
             forms.alert("Select by Parameter list cannot be empty.", ok=True)
             return
 
-        set_setting("min_length_mm", min_length)
-        set_setting("max_length_mm", max_length)
+        set_setting("min_length_mm", min_length_display / self.length_factor)
+        set_setting("max_length_mm", max_length_display / self.length_factor)
         set_setting("custom_parameters", custom_parameters)
         save()
 
@@ -93,10 +99,13 @@ class SettingsWindow(WPFWindow):
         self.Close()
 
 
-def open_settings_dialog():
+def open_settings_dialog(doc):
     """Opens the PyRebar settings dialog modally.
+    Args:
+        doc (DB.Document): active document, used to show length thresholds
+            in its configured Length display unit.
     Returns:
         bool: True if the user saved changes, False if the dialog was cancelled/closed."""
-    window = SettingsWindow()
+    window = SettingsWindow(doc)
     window.ShowDialog()
     return window.saved

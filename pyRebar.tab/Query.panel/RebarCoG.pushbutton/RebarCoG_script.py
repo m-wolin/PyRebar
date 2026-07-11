@@ -8,6 +8,7 @@ from Autodesk.Revit.DB import *
 from rebar_selector import RebarSelector
 from rebar_cog import RebarCoG
 from visualize_point import visualize_point
+from conversion import get_length_unit, get_mass_unit
 from pyrevit import forms
 
 ROUNDING = 3
@@ -26,12 +27,16 @@ cog = rebar_cog.get_cog()
 final_cog = cog[0]
 total_mass = cog[1]
 
-X = round(final_cog[0], ROUNDING)
-Y = round(final_cog[1], ROUNDING)
-Z = round(final_cog[2], ROUNDING)
+length_factor, length_label = get_length_unit(doc)
+mass_factor, mass_label = get_mass_unit(doc)
 
-cog_text = "CoG: X= {0} mm, Y= {1} mm, Z= {2} mm".format(str(X), str(Y), str(Z))
-mass_text = "Total mass: " + str(round(total_mass, ROUNDING))
+X = round(final_cog[0] * length_factor, ROUNDING)
+Y = round(final_cog[1] * length_factor, ROUNDING)
+Z = round(final_cog[2] * length_factor, ROUNDING)
+mass = round(total_mass * mass_factor, ROUNDING)
+
+cog_text = "CoG: X= {0} {3}, Y= {1} {3}, Z= {2} {3}".format(X, Y, Z, length_label)
+mass_text = "Total mass: {0} {1}".format(mass, mass_label)
 print(cog_text)
 print(mass_text)
 
