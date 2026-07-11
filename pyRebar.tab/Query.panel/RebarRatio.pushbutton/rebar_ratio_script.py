@@ -14,7 +14,8 @@ doc = __revit__.ActiveUIDocument.Document
 uidoc = __revit__.ActiveUIDocument
 view = doc.ActiveView
 
-# TODO: if user selects element and rebars, ignore rebars, filter only valid formwork
+rs = RebarSelector(doc, uidoc)
+
 # TODO: if no valid elements in selection raise error
 
 
@@ -26,6 +27,40 @@ def get_objects(doc, uidoc):
         selected_obj = uidoc.Selection.PickObjects(UI.Selection.ObjectType.Element, "Choose elements")
         selection = [doc.GetElement(reference.ElementId) for reference in selected_obj]
     return selection
+
+
+def resolve_to_host_elements(elements):
+    """Replaces any selected Rebar elements with their host element, so a
+    selection containing rebar (with or without its host) can still be used
+    to compute a ratio. De-duplicates by element id, preserving order.
+    Arguments:
+        elements(list[Element])
+    Returns:
+        list[Element]"""
+    resolved = []
+    seen_ids = set()
+    for element in elements:
+        if rs.is_rebar(element):
+            host_id = element.GetHostId()
+            if host_id == DB.ElementId.InvalidElementId:
+                message = "Operation failed!\n" + "Selected rebar has no host element."
+                forms.alert(msg=message, ok=True, exitscript=True)
+            element = doc.GetElement(host_id)
+        if element.Id not in seen_ids:
+            seen_ids.add(element.Id)
+            resolved.append(element)
+    return resolved
+
+
+def get_element_label(element):
+    """Returns a short human-readable identifier for an element, e.g.
+    "Walls 'CW 305 Rigid' (ID 123456)".
+    Arguments:
+        element(Element)
+    Returns:
+        str"""
+    category_name = element.Category.Name if element.Category else element.GetType().Name
+    return "{0} '{1}' (ID {2})".format(category_name, element.Name, element.Id)
 
 
 def can_host_rebar(element):
@@ -97,18 +132,21 @@ mass_factor, mass_label = get_mass_unit(doc)
 volume_factor, volume_label = get_volume_unit(doc)
 
 
-def print_results(volume_m3, mass_kg):
-    """Prints volume/mass/ratio converted to the document's display units."""
+def print_results(volume_m3, mass_kg, label=None):
+    """Prints volume/mass/ratio converted to the document's display units,
+    optionally preceded by a label identifying the element(s) it covers."""
     display_volume = volume_m3 * volume_factor
     display_mass = mass_kg * mass_factor
     display_ratio = round(display_mass / display_volume, 2) if display_volume != 0 else 0
+    if label:
+        print(label)
     print("Concrete volume: {0} {1}".format(round(display_volume, 2), volume_label))
     print("Total rebar mass: {0} {1}".format(round(display_mass, 2), mass_label))
     print("Ratio: {0} {1}/{2}".format(display_ratio, mass_label, volume_label))
 
 
 # Main logic
-elements = get_objects(doc, uidoc)
+elements = resolve_to_host_elements(get_objects(doc, uidoc))
 if len(elements) > 1:
     volumes = []
     rebar_masses = []
@@ -118,12 +156,15 @@ if len(elements) > 1:
             volume, total_mass, _ = calculate_ratio(element, rebars)
             volumes.append(volume)
             rebar_masses.append(total_mass)
+            print_results(volume, total_mass, label=get_element_label(element))
+            print("")
     total_volume = sum(volumes)
     total_rc_mass = sum(rebar_masses)
+    print("--- Total ({0} elements) ---".format(len(volumes)))
     print_results(total_volume, total_rc_mass)
 
 elif len(elements) == 1:
     if can_host_rebar(elements[0]):
         rebars = get_element_dependent_rebars(elements[0])
         volume, total_rc_mass, _ = calculate_ratio(elements[0], rebars)
-        print_results(volume, total_rc_mass)
+        print_results(volume, total_rc_mass, label=get_element_label(elements[0]))
