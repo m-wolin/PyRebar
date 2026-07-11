@@ -11,7 +11,9 @@ class RebarCoG:
         rebar_collector: DB.FilteredElementCollector
         """
         self.rebar_collector = rebar_collector
-        self.multiplanaroption = DB.Structure.MultiplanarOption.IncludeAllMultiplanarCurves
+        self.multiplanaroption = (
+            DB.Structure.MultiplanarOption.IncludeAllMultiplanarCurves
+        )
 
     @staticmethod
     def _is_rebar_group(rebar_object):
@@ -74,7 +76,11 @@ class RebarCoG:
             radius2 = arc_radius + r
             radius1 = arc_radius - r
             # TODO: Check results with p computed for annular sector, is it better?
-            p = (2 * math.sin(alpha) / (3 * alpha)) * (radius2**3 - radius1**3) / (radius2**2 - radius1**2)
+            p = (
+                (2 * math.sin(alpha) / (3 * alpha))
+                * (radius2**3 - radius1**3)
+                / (radius2**2 - radius1**2)
+            )
             # p = arc_radius * math.sin(alpha) / alpha
             # Calculate a line vector and unit vector between center and midpoint
             v_X = a_mp_X - arc_center_X
@@ -109,7 +115,10 @@ class RebarCoG:
         Returns:
         list of coordinates of CoG [x, y, z]"""
 
-        coord_mass = [[list_of_masses[i] * j for j in sub] for i, sub in enumerate(list_of_centroids)]
+        coord_mass = [
+            [list_of_masses[i] * j for j in sub]
+            for i, sub in enumerate(list_of_centroids)
+        ]
         # coord_mass = [[xM1, yM1,zM1], [xM2, yM2, zM2], ...]
         sum_xm = sum(i[0] for i in coord_mass)
         sum_ym = sum(i[1] for i in coord_mass)
@@ -149,14 +158,9 @@ class RebarCoG:
             index (int): the index of a bar in group
         Returns:
             DB.Line or DB.Curve"""
-        if (
-            rebar.DistributionType == DB.Structure.DistributionType.Uniform
-            or DB.Structure.DistributionType.VaryingLength
-        ):
-            rebar_curve = rebar.GetTransformedCenterlineCurves(False, False, False, self.multiplanaroption, index)
-        else:
-            rebar_curve = rebar.GetCenterlineCurves(False, False, False, self.multiplanaroption, index)
-        return rebar_curve
+        return rebar.GetTransformedCenterlineCurves(
+            False, False, False, self.multiplanaroption, index
+        )
 
     def get_cog(self):
         """Calculates the CoG and mass of selected rebars
@@ -175,7 +179,9 @@ class RebarCoG:
                     centroids = []
                     masses = []
                     for curve in rebar_curve:
-                        segment_centroid = self._compute_segment_centroid(curve, rebar_diam, i)
+                        segment_centroid = self._compute_segment_centroid(
+                            curve, rebar_diam, i
+                        )
                         centroids.append(segment_centroid[0])
                         masses.append(segment_centroid[1])
                         # Compute centroid and total mass for each bar
@@ -187,12 +193,16 @@ class RebarCoG:
             else:  # single rebar object
                 index = 0
                 # Get bar curves
-                rebar_curve = rebar.GetCenterlineCurves(False, False, False, self.multiplanaroption, index)
+                rebar_curve = rebar.GetCenterlineCurves(
+                    False, False, False, self.multiplanaroption, index
+                )
                 # Compute centroid for each segment
                 centroids = []
                 masses = []
                 for curve in rebar_curve:
-                    segment_centroid = self._compute_segment_centroid(curve, rebar_diam, index)
+                    segment_centroid = self._compute_segment_centroid(
+                        curve, rebar_diam, index
+                    )
                     centroids.append(segment_centroid[0])
                     masses.append(segment_centroid[1])
                     # Compute centroid and total mass for each bar
