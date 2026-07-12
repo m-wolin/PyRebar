@@ -9,7 +9,7 @@ This is a toolkit of scripts that speeds up common, repetitive tasks in reinforc
 **Any improvement ideas and features to add are welcome!**
 
 ## Installation
-
+Watch the video:
 <p align="center">
   <a href="https://youtu.be/H4hwBS1FI6M">
     <img src="https://img.youtube.com/vi/H4hwBS1FI6M/maxresdefault.jpg" alt="PyRebar Installation Video" width="600">
