@@ -50,8 +50,6 @@ def get_param_str(rebar, name):
         return str(p.AsDouble())
     elif st == DB.StorageType.ElementId:
         eid = p.AsElementId()
-        # ElementId.Value (Int64) replaces the deprecated ElementId.IntegerValue (Int32)
-        # as of the Revit 2024 API; IntegerValue was removed entirely in later versions.
         id_value = eid.Value if hasattr(eid, "Value") else eid.IntegerValue
         return str(id_value)
     return None
@@ -147,7 +145,7 @@ for r in rebar_list:
     if diam_mm is not None:
         diam_key = round(diam_mm, 6)
         diameter_stats[diam_key] = diameter_stats.get(diam_key, 0) + bar_count
-
+    # TODO: A curve bar with hooks? They should not exist.
     if length_mm is not None and length_mm < MIN_LENGTH_MM:
         short_bars.append(info)
     if length_mm is not None and length_mm > MAX_LENGTH_MM:

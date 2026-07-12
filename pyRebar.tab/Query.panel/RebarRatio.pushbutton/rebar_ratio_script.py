@@ -1,5 +1,7 @@
-__doc__ = "Calculate rebar weight to concrete volume ratio. If multiple elements are selected, ratio is computed as sum.\
+__doc__ = (
+    "Calculate rebar weight to concrete volume ratio. If multiple elements are selected, ratio is computed as sum.\
         You can pre-select element or pick after script is triggered."
+)
 __title__ = "Rebar ratio"
 __author__ = "MWolinski"
 from Autodesk.Revit import DB
@@ -24,7 +26,9 @@ def get_objects(doc, uidoc):
     selection = [doc.GetElement(x) for x in uidoc.Selection.GetElementIds()]
     # If no object is selected prompt user to select
     if len(selection) < 1:
-        selected_obj = uidoc.Selection.PickObjects(UI.Selection.ObjectType.Element, "Choose elements")
+        selected_obj = uidoc.Selection.PickObjects(
+            UI.Selection.ObjectType.Element, "Choose elements"
+        )
         selection = [doc.GetElement(reference.ElementId) for reference in selected_obj]
     return selection
 
@@ -54,12 +58,14 @@ def resolve_to_host_elements(elements):
 
 def get_element_label(element):
     """Returns a short human-readable identifier for an element, e.g.
-    "Walls 'CW 305 Rigid' (ID 123456)".
+    "Wall (ID 123456)".
     Arguments:
         element(Element)
     Returns:
         str"""
-    category_name = element.Category.Name if element.Category else element.GetType().Name
+    category_name = (
+        element.Category.Name if element.Category else element.GetType().Name
+    )
     return "{0} '{1}' (ID {2})".format(category_name, element.Name, element.Id)
 
 
@@ -69,11 +75,15 @@ def can_host_rebar(element):
         element(Element)
     Returns:
         boolean"""
-    can_host = element.get_Parameter(DB.BuiltInParameter.DPART_CAN_HOST_REBAR).AsInteger()
+    can_host = element.get_Parameter(
+        DB.BuiltInParameter.DPART_CAN_HOST_REBAR
+    ).AsInteger()
     if can_host == 1:
         return True
     else:
-        message = "Operation failed!\n" + "One of the selected elements cannot host rebar."
+        message = (
+            "Operation failed!\n" + "One of the selected elements cannot host rebar."
+        )
         forms.alert(msg=message, ok=True, exitscript=True)
         return False
 
@@ -119,7 +129,8 @@ def calculate_ratio(element, rebars):
         list[volume(float) in m3,total_rebar_mass(float) in kg, ratio(float) in kg/m3"""
     FEET3_TO_M3 = 0.02831683208256
     volume = (
-        element.get_Parameter(DB.BuiltInParameter.HOST_VOLUME_COMPUTED).AsDouble() * FEET3_TO_M3
+        element.get_Parameter(DB.BuiltInParameter.HOST_VOLUME_COMPUTED).AsDouble()
+        * FEET3_TO_M3
     )  # basic value comes as feet^3
     if volume == 0:
         raise ZeroDivisionError
@@ -137,7 +148,9 @@ def print_results(volume_m3, mass_kg, label=None):
     optionally preceded by a label identifying the element(s) it covers."""
     display_volume = volume_m3 * volume_factor
     display_mass = mass_kg * mass_factor
-    display_ratio = round(display_mass / display_volume, 2) if display_volume != 0 else 0
+    display_ratio = (
+        round(display_mass / display_volume, 2) if display_volume != 0 else 0
+    )
     if label:
         print(label)
     print("Concrete volume: {0} {1}".format(round(display_volume, 2), volume_label))
