@@ -25,7 +25,7 @@ DEFAULTS = {
 # of the script currently being executed by pyRevit.
 _LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 SETTINGS_XAML_PATH = os.path.join(
-    _LIB_DIR, "..", "pyRebar.tab", "Query.panel", "Settings.pushbutton", "view.xaml"
+    _LIB_DIR, "..", "pyRebar.tab", "Settings.panel", "Settings.pushbutton", "view.xaml"
 )
 
 
