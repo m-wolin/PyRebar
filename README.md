@@ -8,6 +8,14 @@ This is a toolkit of scripts that speeds up common, repetitive tasks in reinforc
 
 **Any improvement ideas and features to add are welcome!**
 
+## Installation
+
+<p align="center">
+  <a href="https://youtu.be/H4hwBS1FI6M">
+    <img src="https://img.youtube.com/vi/H4hwBS1FI6M/maxresdefault.jpg" alt="PyRebar Installation Video" width="600">
+  </a>
+</p>
+
 ## How selection works
 
 Tools differ in how they pick up rebar to work with - worth knowing before you click a button:
